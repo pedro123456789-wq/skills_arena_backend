@@ -10,7 +10,13 @@ from random import randint
 
 #clean and comment code
 app = flask.Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace('://', 'ql://', 1)
+
+DATABASE_URI = os.environ.get('DATABASE_URL')
+
+if 'postgres://' in DATABASE_URI:
+	DATABASE_URI = DATABASE_URI.replace('://', 'ql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 db = SQLAlchemy(app)
 password_handler = Bcrypt()
