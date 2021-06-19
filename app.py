@@ -1,28 +1,38 @@
 from utils import utils
+from machine_learning_processor import machine_learning_processor
+from park_finder import ParkFinder
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt 
 import flask
 import os
 from random import randint
+import gtts
 
 
 
-#clean and comment code
+#-> initialize app
 app = flask.Flask(__name__)
 
+#config database URI
 DATABASE_URI = os.environ.get('DATABASE_URL')
 
 if 'postgres://' in DATABASE_URI:
 	DATABASE_URI = DATABASE_URI.replace('://', 'ql://', 1)
 
+#config app
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+
+#start database
 db = SQLAlchemy(app)
+
+#start password encryptor
 password_handler = Bcrypt()
 
 
 
+#-> database models
 class User(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	username = db.Column(db.String(20), unique = True, nullable = False)
@@ -41,6 +51,7 @@ class User(db.Model):
 
 
 
+
 class Skill(db.Model):
 	id = db.Column(db.Integer, primary_key = True)
 	name = db.Column(db.String(100), nullable = False, default = 'Anonymous Skill')
@@ -49,6 +60,8 @@ class Skill(db.Model):
 
 
 
+
+#-> helper functions
 def is_admin(username):
 	users = User.query.filter_by(username = username).all()
 
@@ -77,6 +90,14 @@ def isAuthenticated(username, password):
 	return False
 
 
+
+#-> routes
+@app.route('/', methods=['GET'])
+def home_debug():
+	return 'Server Running'
+
+
+
 @app.route('/query-data', methods=['POST'])
 def see_data():
 	try:
@@ -101,6 +122,7 @@ def see_data():
 
 
 	return ('Invalid API Call', 404, [['Content-Type', 'text/html']])
+
 
 
 @app.route('/create-user', methods = ['POST'])
@@ -132,6 +154,7 @@ def create_user():
 			return ('The chosen email is taken', 404, [['Content-Type', 'text/html']])
 
 
+
 @app.route('/view-database', methods = ['POST'])
 def view_database():
 	try:
@@ -146,6 +169,7 @@ def view_database():
 			return ('\n'.join(list(map(str, User.query.all()))), 200, [['Content-Type', 'text/html']])
 
 	return ('Invalid API call', 404, [['Content-Type', 'text/html']])
+
 
 
 @app.route('/delete-user-admin', methods=['POST'])
@@ -167,6 +191,7 @@ def delete_user():
 	return ('Invalid API call', 404, [['Content-Type', 'text/html']])
 
 
+
 @app.route('/verify-user', methods = ['POST'])
 def verify():
 	try:
@@ -184,6 +209,7 @@ def verify():
 		return ('Email has been verified', 200, [['Content-Type', 'text/html']])
 	else:
 		return ('Invalid confirmation code', 404, [['Content-Type', 'text/html']])
+
 
 
 @app.route('/add-workout-data', methods=['POST'])
@@ -204,6 +230,7 @@ def add_data():
 		return ('Data added to database', 200, [['Content-Type', 'text/html']])
 	else:
 		return ('Invalid username and passsword combination', 404, [['Content-Type', 'text/html']])
+
 
 
 @app.route('/create-session', methods=['POST'])
@@ -227,6 +254,7 @@ def create_session():
 		return (f'Invalid credentials: {username}, {password}', 404, [['Content-Type', 'text/html']])
 
 
+
 @app.route('/get-sessions', methods = ['POST'])
 def get_user_sessions():
 	try:
@@ -244,6 +272,7 @@ def get_user_sessions():
 		return (created_sessions, 200, [['Content-Type', 'text/html']])
 	else:
 		return ('Invalid credentials', 404, [['Content-Type', 'text/html']])
+
 
 
 @app.route('/get-session-number', methods = ['POST'])
@@ -266,6 +295,7 @@ def get_session_number():
 		return ('Invalid credentials', 404, [['Content-Type', 'text/html']])
 
 
+
 @app.route('/get-workout-data', methods = ['POST'])
 def get_workout_data():
 	try:
@@ -285,6 +315,7 @@ def get_workout_data():
 		return ('Invalid credentials', 404, [['Content-Type', 'text/html']])
 
 
+
 @app.route('/authenticate-user', methods = ['POST'])
 def authenticate():
 	try:
@@ -300,6 +331,7 @@ def authenticate():
 		response = ('Invalid Credentials', 404, [['Content-Type', 'text/html']])
 
 	return response
+
 
 
 @app.route('/add-distance-ran', methods = ['POST'])
@@ -323,6 +355,7 @@ def add_distance():
 		return ('Invalid Credentials', 404, [['Content-Type', 'text/html']])
 
 
+
 @app.route('/get-distances-ran', methods = ['POST'])
 def get_distances():
 	try:
@@ -340,6 +373,7 @@ def get_distances():
 		return ('Invalid Credentials', 404, [['Content-Type', 'text/html']])
 
 
+
 @app.route('/skills-saved', methods = ['POST'])
 def skills_saved():
 	try:
@@ -354,6 +388,7 @@ def skills_saved():
 	skills = Skill.query.filter_by(user_id = user.id).all()
 
 	return (str(len(skills)), 200, [['Content-Type', 'text/html']])
+
 
 
 @app.route('/is-skill-name-valid', methods = ['POST'])
@@ -377,6 +412,7 @@ def is_skill_name_valid():
 			return ('Valid Name', 200, [['Content-Type', 'text/html']])
 	else:
 		return ('Invalid Credentials', 404, [['Content-Type', 'text/html']])
+
 
 
 @app.route('/upload-video', methods = ['POST'])
@@ -414,6 +450,7 @@ def upload_video():
 		return ('Invalid credentials', 404, [['Content-Type', 'text/html']])
 
 
+
 @app.route('/add-skill', methods = ['POST'])
 def add_skill():
 	try:
@@ -438,6 +475,7 @@ def add_skill():
 		return ('Invalid credentials', 404, [['Content-Type', 'text/html']])
 
 
+
 @app.route('/get-skill-names', methods = ['POST'])
 def get_skills():
 	try:
@@ -459,6 +497,7 @@ def get_skills():
 
 	else:
 		return ('Invalid credentials', 404, [['Content-Type', 'text/html']])
+
 
 
 @app.route('/get-skill-video', methods = ['POST'])
@@ -551,6 +590,7 @@ def delete_session():
 		return ('Invalid credentials', 404, [['Content-Type', 'text/html']])
 
 
+
 @app.route('/self-delete-account', methods = ['POST'])
 def self_delete_account():
 	try:
@@ -568,6 +608,7 @@ def self_delete_account():
 		return ('Successfully deleted user account', 200, [['Content-Type', 'text/html']])
 	else:
 		return ('Invalid credentials', 404, [['Content-Type', 'text/html']])
+
 
 
 @app.route('/change-password', methods = ['POST'])
@@ -593,6 +634,69 @@ def change_password():
 			return ('The new password is the same as the old password', 404, [['Content-Type', 'text/html']])
 	else:
 		return ('Invalid Credentials', 404, [['Content-Type', 'text/html']])
+
+
+
+
+@app.route('/text-to-speech', methods=['POST'])
+def text_to_speech():
+	#check for required headers
+	try:
+		headers = flask.request.headers
+		text = headers['text']
+	except:
+		return ('Missing Text Header', 404, [['Content-Type', 'text/html']])
+
+	#generate sound file
+	machine_learning_processor.text_to_speech(text)
+
+	#send sound file
+	response = flask.make_response(open('speech.mp3', 'rb').read())
+	response.headers.set('Content-Type', 'sound/mp3')
+
+	return response
+
+
+
+
+@app.route('/speech-to-text', methods = ['POST'])
+def speech_to_text():
+	#check for required headers
+	try:
+		headers = flask.request.headers
+		file = flask.request.files['audio']
+	except:
+		return ('Missing File Header', 404, [['Content-Type', 'text/html']])
+
+	#save file and convert it to text
+	file.save('input_text.mp3')
+	conversion = machine_learning_processor.speech_to_text()
+
+	return (conversion, 200, [['Content-Type', 'text/html']])
+
+
+
+
+@app.route('/find_parks', methods = ['POST'])
+def find_park():
+	#check for required headers
+	try:
+		headers = flask.request.headers
+		latitude, longitude = float(headers['latitude']), float(headers['longitude'])
+	except Exception as e:
+		return (str(e), 404, [['Content-Type', 'text/html']])
+
+
+	#instantiate park_finder class and generate processed image
+	finder = ParkFinder(latitude, longitude)
+	finder.generate_image()
+	finder.process_image()
+
+	#send image as response
+	response = flask.make_response(open('location maps/processed.png', 'rb').read())
+	response.headers.set('Content-Type', 'image/png')
+
+	return response
 
 
 
