@@ -4,9 +4,6 @@ import pydub
 
 
 class machine_learning_processor:
-	def __init__(self):
-		pass 
-
 	@staticmethod
 	def text_to_speech(phrase):
 		tts = gtts.gTTS(phrase, lang = 'en', tld = 'ca')
