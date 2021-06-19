@@ -37,7 +37,7 @@ class User(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	username = db.Column(db.String(20), unique = True, nullable = False)
 	email = db.Column(db.String(120), unique = True, nullable = False)
-	password = db.Column(db.Text, unique = False, nullable = False)
+	password = db.Column(db.String(60), unique = False, nullable = False)
 	saved_workouts = db.Column(db.Text, unique = False, default = '')
 	workout_data = db.Column(db.Text, unique = False, default = '')
 	distances_ran = db.Column(db.Text, unique = False, default = '')
@@ -137,7 +137,7 @@ def create_user():
 
 
 	if len(User.query.filter_by(username=username).all()) == 0 and len(User.query.filter_by(email = email).all()) == 0:
-		hashed_passord = password_handler.generate_password_hash(password)
+		hashed_passord = password_handler.generate_password_hash(password).decode('utf-8')
 		confirmation_token = randint(1000, 9999)
 		new_user = User(username = username, password = hashed_passord, email = email, email_confirmation_token = confirmation_token)
 		db.session.add(new_user)
