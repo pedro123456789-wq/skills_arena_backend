@@ -10,7 +10,8 @@ from random import randint
 
 #clean and comment code
 app = flask.Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///user_stats.db'
+app.config['DATABASE_URL'] = os.environ.get('DATABASE_URL')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 db = SQLAlchemy(app)
 password_handler = Bcrypt()
 
