@@ -626,7 +626,7 @@ def change_password():
 		password_hash = user.password
 
 		if not password_handler.check_password_hash(password_hash, new_password):
-			user.password = password_handler.generate_password_hash(new_password)
+			user.password = password_handler.generate_password_hash(new_password).decode('utf-8')
 			db.session.commit()
 
 			return ('Successfully changed password', 200, [['Content-Type', 'text/html']])
