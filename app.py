@@ -14,21 +14,22 @@ import gtts
 #-> initialize app
 app = flask.Flask(__name__)
 
-#config database URI
+#-> config database URI
 DATABASE_URI = os.environ.get('DATABASE_URL')
 
 if 'postgres://' in DATABASE_URI:
 	DATABASE_URI = DATABASE_URI.replace('://', 'ql://', 1)
 
-#config app
+#-> config app
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
-#start database
+#-> start database
 db = SQLAlchemy(app)
 
-#start password encryptor
+#-> start password encryptor
 password_handler = Bcrypt()
+
 
 
 
@@ -76,6 +77,7 @@ def is_admin(username):
 
 
 
+	
 def isAuthenticated(username, password):
 	user = User.query.filter_by(username = username).all()
 
